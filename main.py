@@ -41,8 +41,8 @@ st.title("🚀 Crypto Analysis Platform")
 # Top statistics
 col1, col2, col3 = st.columns(3)
 
-# Fetch top 50 cryptocurrencies
-top_coins = crypto_data.get_top_50_coins()
+# Fetch initial data with 100 coins
+top_coins = crypto_data.get_top_coins(limit=100)
 
 with col1:
     st.metric(
@@ -110,6 +110,27 @@ else:
 
 # Top Cryptocurrencies with Predictions
 st.subheader("💎 Top Cryptocurrencies")
+
+# Pagination controls
+coins_per_page = st.select_slider(
+    "Coins per page",
+    options=[10, 20, 50],
+    value=20
+)
+
+# Calculate pagination
+total_pages = len(top_coins) // coins_per_page
+current_page = st.select_slider(
+    "Page",
+    options=range(total_pages),
+    value=0,
+    format_func=lambda x: f"Page {x + 1} of {total_pages}"
+)
+
+# Calculate slice indices for current page
+start_idx = current_page * coins_per_page
+end_idx = start_idx + coins_per_page
+
 st.markdown("""
 <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">
     <div style="width: 20%">Coin</div>
@@ -120,7 +141,8 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-for idx, coin in top_coins.head(10).iterrows():
+# Display coins for current page
+for idx, coin in top_coins.iloc[start_idx:end_idx].iterrows():
     # Get prediction for each coin
     prediction = price_predictor.predict_price_movement(coin, sentiment_df)
 
