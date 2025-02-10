@@ -4,13 +4,19 @@ from datetime import datetime, timedelta
 
 class NewsAggregator:
     def __init__(self):
-        # Initialize with a demo API key - replace with actual key in production
-        self.newsapi = NewsApiClient(api_key='YOUR_NEWS_API_KEY')
-        
+        try:
+            self.newsapi = NewsApiClient(api_key=st.secrets["NEWS_API_KEY"])
+        except Exception as e:
+            st.warning("News API key not configured. Please add your News API key to access news features.")
+            self.newsapi = None
+
     @st.cache_data(ttl=900)  # Cache for 15 minutes
     def get_crypto_news(self, query="cryptocurrency", days=3):
         """Fetch cryptocurrency related news"""
         try:
+            if self.newsapi is None:
+                return []
+
             from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             news = self.newsapi.get_everything(
                 q=query,

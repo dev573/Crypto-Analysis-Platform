@@ -6,12 +6,12 @@ import streamlit as st
 class CryptoDataProvider:
     def __init__(self):
         self.cg = CoinGeckoAPI()
-        
+
     @st.cache_data(ttl=900)  # Cache for 15 minutes
-    def get_top_50_coins(self):
+    def get_top_50_coins(_self):  # Changed 'self' to '_self' to make it hashable
         """Fetch top 50 cryptocurrencies by market cap"""
         try:
-            coins = self.cg.get_coins_markets(
+            coins = _self.cg.get_coins_markets(
                 vs_currency='usd',
                 order='market_cap_desc',
                 per_page=50,
@@ -24,10 +24,10 @@ class CryptoDataProvider:
             return pd.DataFrame()
 
     @st.cache_data(ttl=900)
-    def get_coin_history(self, coin_id, days=7):
+    def get_coin_history(_self, coin_id, days=7):  # Changed 'self' to '_self'
         """Fetch historical data for a specific coin"""
         try:
-            history = self.cg.get_coin_market_chart_by_id(
+            history = _self.cg.get_coin_market_chart_by_id(
                 id=coin_id,
                 vs_currency='usd',
                 days=days
