@@ -13,20 +13,52 @@
 
 .positive-change {
     color: #43A047;
+    font-weight: 500;
 }
 
 .negative-change {
     color: #FF6B6B;
+    font-weight: 500;
 }
 
 .news-card {
     padding: 1rem;
     margin: 0.5rem 0;
     border-left: 4px solid #1E88E5;
+    background: white;
+    border-radius: 0 4px 4px 0;
+}
+
+.news-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: #1E88E5;
 }
 
 .chart-container {
     background: white;
     padding: 1rem;
     border-radius: 8px;
+}
+
+.prediction-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.prediction-up {
+    background-color: rgba(67, 160, 71, 0.1);
+    color: #43A047;
+}
+
+.prediction-down {
+    background-color: rgba(255, 107, 107, 0.1);
+    color: #FF6B6B;
+}
+
+.prediction-neutral {
+    background-color: rgba(255, 160, 0, 0.1);
+    color: #FFA000;
 }
