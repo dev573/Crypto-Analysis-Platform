@@ -3,7 +3,7 @@ import pandas as pd
 from modules.crypto_data import CryptoDataProvider
 from modules.news_aggregator import NewsAggregator
 from modules.sentiment import SentimentAnalyzer
-from modules.price_predictor import PricePredictor # Added import
+from modules.price_predictor import PricePredictor
 from utils.visualization import ChartCreator
 from utils.cache import CacheManager
 import plotly.express as px
@@ -24,7 +24,7 @@ with open('styles/custom.css') as f:
 crypto_data = CryptoDataProvider()
 news_aggregator = NewsAggregator()
 sentiment_analyzer = SentimentAnalyzer()
-price_predictor = PricePredictor() # Added initialization
+price_predictor = PricePredictor()
 chart_creator = ChartCreator()
 
 # Sidebar
@@ -112,34 +112,74 @@ else:
 st.subheader("💎 Top Cryptocurrencies")
 st.markdown("""
 <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">
-    <div style="width: 30%">Coin</div>
-    <div style="width: 15%">Price</div>
-    <div style="width: 15%">24h Change</div>
-    <div style="width: 20%">Market Cap</div>
-    <div style="width: 20%">Prediction</div>
+    <div style="width: 20%">Coin</div>
+    <div style="width: 12%">Price</div>
+    <div style="width: 12%">24h Change</div>
+    <div style="width: 15%">Market Cap</div>
+    <div style="width: 41%">Price Prediction & Factors</div>
 </div>
 """, unsafe_allow_html=True)
 
 for idx, coin in top_coins.head(10).iterrows():
     # Get prediction for each coin
-    prediction = price_predictor.predict_price_movement(coin, sentiment_df) # Use the price predictor
+    prediction = price_predictor.predict_price_movement(coin, sentiment_df)
 
-    pred_color = price_predictor.get_prediction_color(prediction['prediction']) # Get color from predictor
+    pred_color = price_predictor.get_prediction_color(prediction['prediction'])
     change_color = "positive-change" if coin['price_change_percentage_24h'] > 0 else "negative-change"
 
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center;">
-        <div style="width: 30%"><b>{coin['name']}</b> ({coin['symbol'].upper()})</div>
-        <div style="width: 15%">${coin['current_price']:,.2f}</div>
-        <div style="width: 15%" class="{change_color}">{coin['price_change_percentage_24h']:.2f}%</div>
-        <div style="width: 20%">${coin['market_cap']:,.0f}</div>
-        <div style="width: 20%">
+        <div style="width: 20%"><b>{coin['name']}</b> ({coin['symbol'].upper()})</div>
+        <div style="width: 12%">${coin['current_price']:,.2f}</div>
+        <div style="width: 12%" class="{change_color}">{coin['price_change_percentage_24h']:.2f}%</div>
+        <div style="width: 15%">${coin['market_cap']:,.0f}</div>
+        <div style="width: 41%">
             <span style="color: {pred_color}">
                 {prediction['prediction']} ({prediction['confidence']:.1f}% confidence)
             </span>
+            <div style="font-size: 0.9em; margin-top: 4px; color: #666;">
+                Sentiment: {prediction['sentiment_score']:.2f} • 
+                Momentum: {prediction['price_momentum']:.1f}% • 
+                Volume: {prediction['volume_indicator']:.2f}
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# Prediction Methodology Explanation
+st.markdown("---")
+st.subheader("📊 Understanding Our Price Predictions")
+
+st.markdown("""
+Our price prediction system combines three key factors to forecast cryptocurrency price movements:
+
+1. **News Sentiment Score** (30% weight)
+   - Range: -1.0 (Very Negative) to +1.0 (Very Positive)
+   - Analyzes recent news articles' sentiment using natural language processing
+   - Higher scores suggest positive market sentiment
+
+2. **Price Momentum** (50% weight)
+   - Based on 24-hour price changes
+   - Indicates the strength and direction of recent price movements
+   - Positive values suggest upward trend, negative values suggest downward trend
+
+3. **Volume Indicator** (20% weight)
+   - Ratio of trading volume to market cap
+   - Measures market activity and liquidity
+   - Higher values indicate stronger market interest
+
+**Confidence Score Calculation:**
+- Combines all three factors with their respective weights
+- Higher confidence scores (closer to 100%) indicate stronger signals across multiple factors
+- Lower confidence scores (closer to 50%) suggest mixed or weak signals
+
+**Prediction Interpretation:**
+- 🟢 **Up**: Combined factors suggest price increase
+- 🔴 **Down**: Combined factors suggest price decrease
+- 🟡 **Neutral**: Mixed signals or insufficient data
+
+**Note**: These predictions are based on technical analysis and sentiment data. Always conduct your own research before making investment decisions.
+""")
 
 # Footer
 st.markdown("---")
