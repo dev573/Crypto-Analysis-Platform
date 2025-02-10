@@ -84,29 +84,43 @@ for idx, coin in top_coins.head(10).iterrows():
     with col4:
         st.write(f"${coin['market_cap']:,.0f}")
 
-# News and Sentiment
+# News and Sentiment (Optional)
 st.subheader("📰 Latest News & Sentiment")
-news_articles = news_aggregator.get_crypto_news()
-sentiment_df = sentiment_analyzer.analyze_news_sentiment(news_articles)
 
-col1, col2 = st.columns([2, 1])
+try:
+    news_articles = news_aggregator.get_crypto_news()
+    if news_articles:
+        sentiment_df = sentiment_analyzer.analyze_news_sentiment(news_articles)
 
-with col1:
-    for article in news_articles[:5]:
-        st.markdown(news_aggregator.format_news_card(article), unsafe_allow_html=True)
+        col1, col2 = st.columns([2, 1])
 
-with col2:
-    sentiment_fig = px.pie(
-        sentiment_df,
-        names='sentiment',
-        title='News Sentiment Distribution',
-        color_discrete_map={
-            'Positive': '#43A047',
-            'Neutral': '#FFA000',
-            'Negative': '#FF6B6B'
-        }
-    )
-    st.plotly_chart(sentiment_fig)
+        with col1:
+            for article in news_articles[:5]:
+                st.markdown(news_aggregator.format_news_card(article), unsafe_allow_html=True)
+
+        with col2:
+            sentiment_fig = px.pie(
+                sentiment_df,
+                names='sentiment',
+                title='News Sentiment Distribution',
+                color_discrete_map={
+                    'Positive': '#43A047',
+                    'Neutral': '#FFA000',
+                    'Negative': '#FF6B6B'
+                }
+            )
+            st.plotly_chart(sentiment_fig)
+    else:
+        st.info("""
+        News feature is currently disabled. To enable news:
+        1. Get a free API key from newsapi.org
+        2. Add it to the secrets.toml file
+        3. Restart the application
+
+        Meanwhile, you can still use all other features of the platform!
+        """)
+except Exception as e:
+    st.warning("News section is temporarily unavailable. Other features are working normally.")
 
 # Footer
 st.markdown("---")
