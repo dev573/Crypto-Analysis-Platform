@@ -87,9 +87,9 @@ for idx, coin in top_coins.head(10).iterrows():
 # News and Sentiment (Optional)
 st.subheader("📰 Latest News & Sentiment")
 
-try:
-    news_articles = news_aggregator.get_crypto_news()
-    if news_articles:
+news_articles = news_aggregator.get_crypto_news()
+if news_articles:
+    try:
         sentiment_df = sentiment_analyzer.analyze_news_sentiment(news_articles)
 
         col1, col2 = st.columns([2, 1])
@@ -110,17 +110,19 @@ try:
                 }
             )
             st.plotly_chart(sentiment_fig)
-    else:
-        st.info("""
-        News feature is currently disabled. To enable news:
-        1. Get a free API key from newsapi.org
-        2. Add it to the secrets.toml file
-        3. Restart the application
+    except Exception as e:
+        st.warning("Error processing news data. Some features may be limited.")
+else:
+    st.info("""
+    ℹ️ News feature is currently disabled
 
-        Meanwhile, you can still use all other features of the platform!
-        """)
-except Exception as e:
-    st.warning("News section is temporarily unavailable. Other features are working normally.")
+    To enable cryptocurrency news and sentiment analysis:
+    1. Get a free API key from newsapi.org
+    2. Add it to .streamlit/secrets.toml file
+    3. Restart the application
+
+    Meanwhile, you can still use all other features of the platform!
+    """)
 
 # Footer
 st.markdown("---")

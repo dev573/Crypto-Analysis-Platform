@@ -4,19 +4,27 @@ from datetime import datetime, timedelta
 
 class NewsAggregator:
     def __init__(self):
+        self.newsapi = None
+        self._initialize_api()
+
+    def _initialize_api(self):
+        """Initialize News API client with proper error handling"""
         try:
-            self.newsapi = NewsApiClient(api_key=st.secrets["NEWS_API_KEY"])
+            if "NEWS_API_KEY" in st.secrets:
+                api_key = st.secrets["NEWS_API_KEY"]
+                if api_key and api_key.strip():
+                    self.newsapi = NewsApiClient(api_key=api_key)
         except Exception as e:
-            st.warning("News API key not configured. Please add your News API key to access news features.")
+            st.warning("News API initialization failed. Some features may be limited.")
             self.newsapi = None
 
     @st.cache_data(ttl=900)  # Cache for 15 minutes
     def get_crypto_news(self, query="cryptocurrency", days=3):
         """Fetch cryptocurrency related news"""
-        try:
-            if self.newsapi is None:
-                return []
+        if self.newsapi is None:
+            return []
 
+        try:
             from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
             news = self.newsapi.get_everything(
                 q=query,
@@ -26,7 +34,7 @@ class NewsAggregator:
             )
             return news.get('articles', [])
         except Exception as e:
-            st.error(f"Error fetching news: {e}")
+            st.error(f"Error fetching news: {str(e)}")
             return []
 
     def format_news_card(self, article):
