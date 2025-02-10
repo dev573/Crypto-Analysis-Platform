@@ -19,14 +19,14 @@ class NewsAggregator:
             self.newsapi = None
 
     @st.cache_data(ttl=900)  # Cache for 15 minutes
-    def get_crypto_news(self, query="cryptocurrency", days=3):
+    def get_crypto_news(_self, query="cryptocurrency", days=3):  # Changed 'self' to '_self'
         """Fetch cryptocurrency related news"""
-        if self.newsapi is None:
+        if _self.newsapi is None:
             return []
 
         try:
             from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')
-            news = self.newsapi.get_everything(
+            news = _self.newsapi.get_everything(
                 q=query,
                 from_param=from_date,
                 language='en',
