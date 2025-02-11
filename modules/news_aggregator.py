@@ -10,12 +10,11 @@ class NewsAggregator:
     def _initialize_api(self):
         """Initialize News API client with proper error handling"""
         try:
-            if "NEWS_API_KEY" in st.secrets:
-                api_key = st.secrets["NEWS_API_KEY"]
-                if api_key and api_key.strip():
-                    self.newsapi = NewsApiClient(api_key=api_key.strip())
-                    return
-            st.warning("News API key not found or invalid in secrets.toml")
+            api_key = st.secrets.get("NEWS_API_KEY")
+            if api_key:
+                self.newsapi = NewsApiClient(api_key=api_key.strip())
+                return
+            st.warning("News API key not found or invalid in secrets")
         except Exception as e:
             st.error(f"Failed to initialize News API: {str(e)}")
         self.newsapi = None
