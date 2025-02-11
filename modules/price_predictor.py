@@ -64,6 +64,30 @@ class PricePredictor:
                 'volume_indicator': 0
             }
 
+    def calculate_predicted_price(self, current_price, prediction_data):
+        """Calculate predicted price in 24 hours based on prediction data"""
+        try:
+            # Get the confidence and direction
+            confidence = prediction_data['confidence'] / 100  # Convert to decimal
+            is_up = prediction_data['prediction'] == 'Up'
+            
+            # Calculate potential change percentage based on confidence
+            # Max change is set to 10% (can be adjusted based on volatility)
+            max_change_percent = 10
+            predicted_change = confidence * max_change_percent
+            
+            # Apply direction (positive or negative)
+            if not is_up:
+                predicted_change = -predicted_change
+            
+            # Calculate predicted price
+            predicted_price = current_price * (1 + (predicted_change / 100))
+            
+            return predicted_price
+        except Exception as e:
+            st.error(f"Error calculating predicted price: {str(e)}")
+            return current_price
+
     def get_prediction_color(self, prediction):
         """Return color based on prediction"""
         if prediction == 'Up':

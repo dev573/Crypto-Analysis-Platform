@@ -13,7 +13,8 @@ st.set_page_config(
     page_title="Crypto Analysis Platform",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
+    menu_items={}
 )
 
 # Load custom CSS
@@ -27,13 +28,8 @@ sentiment_analyzer = SentimentAnalyzer()
 price_predictor = PricePredictor()
 chart_creator = ChartCreator()
 
-# Sidebar
-st.sidebar.title("⚙️ Settings")
-time_range = st.sidebar.selectbox(
-    "Time Range",
-    ["24h", "7d", "30d", "90d"],
-    index=1
-)
+# Set time range to 24h
+time_range = "24h"
 
 # Main content
 st.title("🚀 Crypto Analysis Platform")
@@ -68,45 +64,14 @@ st.subheader("📊 Market Overview")
 market_chart = chart_creator.create_market_overview(top_coins)
 st.plotly_chart(market_chart, use_container_width=True)
 
-# News and Sentiment Analysis
-st.subheader("📰 Latest News & Sentiment")
-
+# Initialize sentiment data
+sentiment_df = pd.DataFrame()
 news_articles = news_aggregator.get_crypto_news()
 if news_articles:
     try:
         sentiment_df = sentiment_analyzer.analyze_news_sentiment(news_articles)
-
-        col1, col2 = st.columns([2, 1])
-
-        with col1:
-            for article in news_articles[:5]:
-                st.markdown(news_aggregator.format_news_card(article), unsafe_allow_html=True)
-
-        with col2:
-            sentiment_fig = px.pie(
-                sentiment_df,
-                names='sentiment',
-                title='News Sentiment Distribution',
-                color_discrete_map={
-                    'Positive': '#43A047',
-                    'Neutral': '#FFA000',
-                    'Negative': '#FF6B6B'
-                }
-            )
-            st.plotly_chart(sentiment_fig)
     except Exception as e:
         st.warning("Error processing news data. Some features may be limited.")
-else:
-    st.info("""
-    ℹ️ News feature is currently disabled
-
-    To enable cryptocurrency news and sentiment analysis:
-    1. Get a free API key from newsapi.org
-    2. Add it to .streamlit/secrets.toml file
-    3. Restart the application
-
-    Meanwhile, you can still use all other features of the platform!
-    """)
 
 # Top Cryptocurrencies with Predictions
 st.subheader("💎 Top Cryptocurrencies")
@@ -136,8 +101,9 @@ st.markdown("""
     <div style="width: 20%">Coin</div>
     <div style="width: 12%">Price</div>
     <div style="width: 12%">24h Change</div>
-    <div style="width: 15%">Market Cap</div>
-    <div style="width: 41%">Price Prediction & Factors</div>
+    <div style="width: 12%">Predicted (24h)</div>
+    <div style="width: 12%">Market Cap</div>
+    <div style="width: 32%">Price Prediction & Factors</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -149,13 +115,19 @@ for idx, coin in top_coins.iloc[start_idx:end_idx].iterrows():
     pred_color = price_predictor.get_prediction_color(prediction['prediction'])
     change_color = "positive-change" if coin['price_change_percentage_24h'] > 0 else "negative-change"
 
+    # Calculate predicted price
+    predicted_price = price_predictor.calculate_predicted_price(coin['current_price'], prediction)
+    price_diff = ((predicted_price - coin['current_price']) / coin['current_price']) * 100
+    pred_price_color = "positive-change" if price_diff > 0 else "negative-change"
+
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center;">
         <div style="width: 20%"><b>{coin['name']}</b> ({coin['symbol'].upper()})</div>
         <div style="width: 12%">${coin['current_price']:,.2f}</div>
         <div style="width: 12%" class="{change_color}">{coin['price_change_percentage_24h']:.2f}%</div>
-        <div style="width: 15%">${coin['market_cap']:,.0f}</div>
-        <div style="width: 41%">
+        <div style="width: 12%" class="{pred_price_color}">${predicted_price:,.2f}</div>
+        <div style="width: 12%">${coin['market_cap']:,.0f}</div>
+        <div style="width: 32%">
             <span style="color: {pred_color}">
                 {prediction['prediction']} ({prediction['confidence']:.1f}% confidence)
             </span>
@@ -167,6 +139,31 @@ for idx, coin in top_coins.iloc[start_idx:end_idx].iterrows():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+# News and Sentiment Analysis
+st.subheader("📰 Latest News & Sentiment")
+
+if news_articles:
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        for article in news_articles[:5]:
+            st.markdown(news_aggregator.format_news_card(article), unsafe_allow_html=True)
+
+    with col2:
+        sentiment_fig = px.pie(
+            sentiment_df,
+            names='sentiment',
+            title='News Sentiment Distribution',
+            color_discrete_map={
+                'Positive': '#43A047',
+                'Neutral': '#FFA000',
+                'Negative': '#FF6B6B'
+            }
+        )
+        st.plotly_chart(sentiment_fig)
+else:
+    st.info("i️ News feature is currently disabled. Contact owner to enable.")
 
 # Prediction Methodology Explanation
 st.markdown("---")
